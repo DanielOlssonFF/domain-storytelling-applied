@@ -1,4 +1,4 @@
-﻿namespace TE.DomainStorytellingApplied.Domain.Tests;
+namespace TE.DomainStorytellingApplied.Domain.Tests;
 
 public class SanityTests
 {
