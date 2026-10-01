@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TE.DomainStorytellingApplied.Domain.Tests/TE.DomainStorytellingApplied.Domain.Tests.csproj" />
+  <Project Path="TE.DomainStorytellingApplied.Domain/TE.DomainStorytellingApplied.Domain.csproj" />
+</Solution>
