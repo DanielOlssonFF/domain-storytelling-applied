@@ -1,6 +1,8 @@
 # Modeller – Bokningstjänst
 
-Här beskrivs de modeller som behövs i domänen: vad de innehåller, vilka regler de har och vilka testfall som verifierar reglerna.
+Här beskrivs de modeller som behövs i domänen: vad de innehåller, vilka metoder de har, vilka regler som gäller och vilka testfall som verifierar reglerna.
+
+Ogiltiga värden ger `ArgumentException` eller `ArgumentNullException`. Otillåtna åtgärder, till exempel fel status, nekad policy eller överlapp, ger `InvalidOperationException`.
 
 ---
 
@@ -56,6 +58,12 @@ Värdeobjekt.
 | `End` | `DateTime` | Sluttid |
 | `Duration` | `TimeSpan` | Beräknas som `End - Start` |
 
+**Metoder**
+
+| Metod | Beskrivning |
+|---|---|
+| `Overlaps(Timeslot other)` | Returnerar `true` om tidsluckorna överlappar |
+
 **Regler och testfall**
 - Starttiden får inte vara senare än sluttiden.
 - Starttiden får inte vara lika med sluttiden, eftersom tidsluckan då saknar längd.
@@ -74,7 +82,14 @@ Värdeobjekt.
 | `RequiresReview` | `bool` | Om bokningar kräver manuell granskning |
 | `MinDuration` | `TimeSpan` | Kortaste tillåtna bokningslängd |
 | `MaxDuration` | `TimeSpan` | Längsta tillåtna bokningslängd |
-| `OpeningHours` | `TimeOnly` – `TimeOnly` | Tider då lokalen kan bokas |
+| `OpensAt` | `TimeOnly` | Tid då lokalen öppnar |
+| `ClosesAt` | `TimeOnly` | Tid då lokalen stänger |
+
+**Metoder**
+
+| Metod | Beskrivning |
+|---|---|
+| `Allows(Booker booker, Timeslot timeslot, DateTime now)` | Returnerar `true` om bokaren får boka tidsluckan. `now` används för att neka tider i det förflutna |
 
 **Regler och testfall**
 - `MinDuration` får inte vara större än `MaxDuration`.
@@ -83,7 +98,7 @@ Värdeobjekt.
 - En bokare vars typ inte är tillåten nekas.
 - En tidslucka som är kortare än `MinDuration` nekas.
 - En tidslucka som är längre än `MaxDuration` nekas.
-- En tidslucka utanför öppettiderna nekas.
+- En tidslucka utanför öppettiderna nekas. Tidsluckan måste börja och sluta samma dag.
 - En tidslucka i det förflutna nekas.
 - Policyn anger om bokningen kräver granskning.
 
@@ -91,7 +106,7 @@ Värdeobjekt.
 
 ## Reservation (Bokning)
 
-Aggregatrot.
+Skapas endast via `PremisesSchedule.Reserve`. Konstruktorn och `Submit` är `internal`, så att policyn och överlappet alltid kontrolleras innan en bokning finns.
 
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
@@ -102,6 +117,14 @@ Aggregatrot.
 | `Status` | `ReservationStatus` | `Created`, `PendingReview`, `Approved` eller `Rejected` |
 | `ReviewedBy` | `Approver?` | Godkännaren, om bokningen har granskats |
 | `RejectionReason` | `string?` | Anledning till avslag |
+
+**Metoder**
+
+| Metod | Synlighet | Beskrivning |
+|---|---|---|
+| `Submit()` | `internal` | Flyttar bokningen från `Created` till `Approved` eller `PendingReview` beroende på policyn |
+| `Approve(Approver approver)` | `public` | Godkänner en bokning som väntar på granskning |
+| `Reject(Approver approver, string reason)` | `public` | Avslår en bokning som väntar på granskning |
 
 **Statusflöde**
 
@@ -124,14 +147,21 @@ Created ──(policyn kräver granskning)──► PendingReview ──► Appr
 
 ## PremisesSchedule (Lokalens bokningskalender)
 
-Håller koll på de bokningar som finns för en lokal.
+Håller koll på de bokningar som finns för en lokal och är den enda vägen att skapa en bokning.
 
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
 | `Premises` | `Premises` | Lokalen |
-| `Reservations` | `IReadOnlyCollection<Reservation>` | Aktiva bokningar |
+| `Reservations` | `IReadOnlyCollection<Reservation>` | Lokalens bokningar |
+
+**Metoder**
+
+| Metod | Beskrivning |
+|---|---|
+| `Reserve(Booker booker, Timeslot timeslot, DateTime now)` | Kontrollerar policyn och överlapp, skapar bokningen, skickar in den med `Submit` och returnerar den |
 
 **Regler och testfall**
+- En bokning som policyn nekar skapas inte.
 - En tidslucka som överlappar en befintlig, ej avslagen bokning kan inte bokas.
 - En tidslucka som överlappar en avslagen bokning kan bokas.
 - Två tidsluckor som ligger direkt efter varandra kan bokas.
@@ -147,7 +177,13 @@ Håller koll på de bokningar som finns för en lokal.
 | `Type` | `NotificationType` | `Confirmation` eller `Rejection` |
 | `Message` | `string` | Meddelandetext, inklusive anledningen vid avslag |
 
+**Metoder**
+
+| Metod | Beskrivning |
+|---|---|
+| `static For(Reservation reservation)` | Skapar ett besked för en godkänd eller avslagen bokning |
+
 **Regler och testfall**
 - En godkänd bokning ger ett besked av typen `Confirmation`.
 - En avslagen bokning ger ett besked av typen `Rejection` som innehåller anledningen.
-- Inget besked skapas för en bokning som har statusen `PendingReview`.
+- Inget besked skapas för en bokning som har statusen `Created` eller `PendingReview`.
