@@ -31,6 +31,22 @@ public class PremisesScheduleTests
     }
 
     [Fact]
+    public void GivenNoBooker_WhenReserving_ShouldThrow()
+    {
+        var schedule = CreateSchedule();
+
+        Should.Throw<ArgumentNullException>(() => schedule.Reserve(null!, Slot(10, 12), Now));
+    }
+
+    [Fact]
+    public void GivenNoTimeslot_WhenReserving_ShouldThrow()
+    {
+        var schedule = CreateSchedule();
+
+        Should.Throw<ArgumentNullException>(() => schedule.Reserve(Booker, null!, Now));
+    }
+
+    [Fact]
     public void GivenFreeTimeslot_WhenReserving_ShouldCreateReservation()
     {
         var schedule = CreateSchedule();

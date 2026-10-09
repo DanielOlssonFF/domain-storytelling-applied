@@ -90,6 +90,14 @@ public class TimeslotTests
     }
 
     [Fact]
+    public void GivenNoOtherTimeslot_WhenCheckingOverlap_ShouldThrow()
+    {
+        var timeslot = new Timeslot(Ten, Eleven);
+
+        Should.Throw<ArgumentNullException>(() => timeslot.Overlaps(null!));
+    }
+
+    [Fact]
     public void GivenTimeslotsWithSameStartAndEnd_WhenComparing_ShouldBeEqual()
     {
         var first = new Timeslot(Ten, Eleven);

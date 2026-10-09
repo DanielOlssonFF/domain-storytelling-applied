@@ -84,6 +84,34 @@ public class BookingPolicyTests
     }
 
     [Fact]
+    public void GivenNullAllowedBookerTypes_WhenCreatingPolicy_ShouldThrow()
+    {
+        Should.Throw<ArgumentNullException>(() => new BookingPolicy(
+            null!,
+            requiresReview: false,
+            minDuration: TimeSpan.FromHours(1),
+            maxDuration: TimeSpan.FromHours(4),
+            opensAt: OpensAt,
+            closesAt: ClosesAt));
+    }
+
+    [Fact]
+    public void GivenNoBooker_WhenCheckingPolicy_ShouldThrow()
+    {
+        var policy = CreatePolicy();
+
+        Should.Throw<ArgumentNullException>(() => policy.Allows(null!, Slot(10, 12), Now));
+    }
+
+    [Fact]
+    public void GivenNoTimeslot_WhenCheckingPolicy_ShouldThrow()
+    {
+        var policy = CreatePolicy();
+
+        Should.Throw<ArgumentNullException>(() => policy.Allows(PrivateBooker, null!, Now));
+    }
+
+    [Fact]
     public void GivenUndefinedBookerType_WhenCreatingPolicy_ShouldThrow()
     {
         Should.Throw<ArgumentException>(() =>
