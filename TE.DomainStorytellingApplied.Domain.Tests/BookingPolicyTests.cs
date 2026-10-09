@@ -51,6 +51,20 @@ public class BookingPolicyTests
             closesAt: ClosesAt));
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-60)]
+    public void GivenMinDurationNotGreaterThanZero_WhenCreatingPolicy_ShouldThrow(int minutes)
+    {
+        Should.Throw<ArgumentException>(() => new BookingPolicy(
+            [BookerType.PrivateIndividual],
+            requiresReview: false,
+            minDuration: TimeSpan.FromMinutes(minutes),
+            maxDuration: TimeSpan.FromHours(4),
+            opensAt: OpensAt,
+            closesAt: ClosesAt));
+    }
+
     [Fact]
     public void GivenOpensAtNotBeforeClosesAt_WhenCreatingPolicy_ShouldThrow()
     {

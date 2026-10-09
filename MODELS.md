@@ -93,6 +93,7 @@ Värdeobjekt.
 | `Allows(Booker booker, Timeslot timeslot, DateTimeOffset now)` |
 
 **Regler och testfall**
+- `MinDuration` måste vara större än 0.
 - `MinDuration` får inte vara större än `MaxDuration`.
 - Öppningstiden måste vara tidigare än stängningstiden.
 - Minst en bokartyp måste vara tillåten.

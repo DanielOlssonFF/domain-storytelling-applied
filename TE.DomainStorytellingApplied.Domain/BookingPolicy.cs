@@ -19,6 +19,11 @@ public sealed class BookingPolicy
             throw new ArgumentException("At least one booker type must be allowed.", nameof(allowedBookerTypes));
         }
 
+        if (minDuration <= TimeSpan.Zero)
+        {
+            throw new ArgumentException("Min duration must be greater than zero.", nameof(minDuration));
+        }
+
         if (minDuration > maxDuration)
         {
             throw new ArgumentException("Min duration cannot be greater than max duration.", nameof(minDuration));
