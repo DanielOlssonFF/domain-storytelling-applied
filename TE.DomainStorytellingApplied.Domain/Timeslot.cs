@@ -2,7 +2,7 @@ namespace TE.DomainStorytellingApplied.Domain;
 
 public sealed record Timeslot
 {
-    public Timeslot(DateTime start, DateTime end)
+    public Timeslot(DateTimeOffset start, DateTimeOffset end)
     {
         if (start >= end)
         {
@@ -13,9 +13,9 @@ public sealed record Timeslot
         End = end;
     }
 
-    public DateTime Start { get; }
+    public DateTimeOffset Start { get; }
 
-    public DateTime End { get; }
+    public DateTimeOffset End { get; }
 
     public TimeSpan Duration => End - Start;
 

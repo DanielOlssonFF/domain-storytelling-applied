@@ -2,9 +2,9 @@ namespace TE.DomainStorytellingApplied.Domain.Tests;
 
 public class TimeslotTests
 {
-    private static readonly DateTime Ten = new(2030, 1, 1, 10, 0, 0);
-    private static readonly DateTime Eleven = new(2030, 1, 1, 11, 0, 0);
-    private static readonly DateTime Twelve = new(2030, 1, 1, 12, 0, 0);
+    private static readonly DateTimeOffset Ten = new(2030, 1, 1, 10, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Eleven = new(2030, 1, 1, 11, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Twelve = new(2030, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
     [Fact]
     public void GivenStartBeforeEnd_WhenCreatingTimeslot_ShouldSetStartAndEnd()
@@ -72,6 +72,21 @@ public class TimeslotTests
         var second = new Timeslot(Eleven, Twelve);
 
         first.Overlaps(second).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void GivenTimeslotsWithDifferentOffsets_WhenCheckingOverlap_ShouldCompareActualPointInTime()
+    {
+        var utc = new Timeslot(Ten, Eleven);
+        var stockholmOverlapping = new Timeslot(
+            new DateTimeOffset(2030, 1, 1, 11, 30, 0, TimeSpan.FromHours(1)),
+            new DateTimeOffset(2030, 1, 1, 13, 0, 0, TimeSpan.FromHours(1)));
+        var stockholmAdjacent = new Timeslot(
+            new DateTimeOffset(2030, 1, 1, 12, 0, 0, TimeSpan.FromHours(1)),
+            new DateTimeOffset(2030, 1, 1, 13, 0, 0, TimeSpan.FromHours(1)));
+
+        utc.Overlaps(stockholmOverlapping).ShouldBeTrue();
+        utc.Overlaps(stockholmAdjacent).ShouldBeFalse();
     }
 
     [Fact]

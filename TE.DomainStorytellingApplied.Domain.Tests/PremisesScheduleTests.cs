@@ -2,7 +2,7 @@ namespace TE.DomainStorytellingApplied.Domain.Tests;
 
 public class PremisesScheduleTests
 {
-    private static readonly DateTime Now = new(2030, 1, 1, 8, 0, 0);
+    private static readonly DateTimeOffset Now = new(2030, 1, 1, 8, 0, 0, TimeSpan.Zero);
 
     private static readonly Booker Booker =
         new("Anna Andersson", "anna@example.com", BookerType.PrivateIndividual);
@@ -22,7 +22,7 @@ public class PremisesScheduleTests
             closesAt: new TimeOnly(22, 0))));
 
     private static Timeslot Slot(int startHour, int endHour) =>
-        new(new DateTime(2030, 1, 2, startHour, 0, 0), new DateTime(2030, 1, 2, endHour, 0, 0));
+        new(new DateTimeOffset(2030, 1, 2, startHour, 0, 0, TimeSpan.Zero), new DateTimeOffset(2030, 1, 2, endHour, 0, 0, TimeSpan.Zero));
 
     [Fact]
     public void GivenNoPremises_WhenCreatingSchedule_ShouldThrow()

@@ -54,8 +54,8 @@ Värdeobjekt.
 
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
-| `Start` | `DateTime` | Starttid |
-| `End` | `DateTime` | Sluttid |
+| `Start` | `DateTimeOffset` | Starttid med tidszonsförskjutning |
+| `End` | `DateTimeOffset` | Sluttid med tidszonsförskjutning |
 | `Duration` | `TimeSpan` | Beräknas som `End - Start` |
 
 **Metoder**
@@ -71,6 +71,7 @@ Värdeobjekt.
 - Två tidsluckor som överlappar ska upptäckas (`Overlaps`).
 - Två tidsluckor som ligger direkt efter varandra (A slutar 10:00, B börjar 10:00) överlappar inte.
 - Två tidsluckor med samma start- och sluttid ska vara lika (värdelikhet).
+- Överlapp jämförs på faktisk tidpunkt, även om tidsluckorna har olika tidszonsförskjutning.
 
 ---
 
@@ -89,7 +90,7 @@ Värdeobjekt.
 
 | Metod | Beskrivning |
 |---|---|
-| `Allows(Booker booker, Timeslot timeslot, DateTime now)` | Returnerar `true` om bokaren får boka tidsluckan. `now` används för att neka tider i det förflutna |
+| `Allows(Booker booker, Timeslot timeslot, DateTimeOffset now)` |
 
 **Regler och testfall**
 - `MinDuration` får inte vara större än `MaxDuration`.
@@ -98,7 +99,7 @@ Värdeobjekt.
 - En bokare vars typ inte är tillåten nekas.
 - En tidslucka som är kortare än `MinDuration` nekas.
 - En tidslucka som är längre än `MaxDuration` nekas.
-- En tidslucka utanför öppettiderna nekas. Tidsluckan måste börja och sluta samma dag.
+- En tidslucka utanför öppettiderna nekas. Tidsluckan måste börja och sluta samma dag. Öppettiderna jämförs med tidsluckans lokala klocktid, det vill säga tiden i tidsluckans egen tidszonsförskjutning.
 - En tidslucka i det förflutna nekas.
 - Policyn anger om bokningen kräver granskning.
 
@@ -158,7 +159,7 @@ Håller koll på de bokningar som finns för en lokal och är den enda vägen at
 
 | Metod | Beskrivning |
 |---|---|
-| `Reserve(Booker booker, Timeslot timeslot, DateTime now)` | Kontrollerar policyn och överlapp, skapar bokningen, skickar in den med `Submit` och returnerar den |
+| `Reserve(Booker booker, Timeslot timeslot, DateTimeOffset now)` |
 
 **Regler och testfall**
 - En bokning som policyn nekar skapas inte.

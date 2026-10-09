@@ -2,7 +2,7 @@ namespace TE.DomainStorytellingApplied.Domain.Tests;
 
 public class BookingPolicyTests
 {
-    private static readonly DateTime Now = new(2030, 1, 1, 8, 0, 0);
+    private static readonly DateTimeOffset Now = new(2030, 1, 1, 8, 0, 0, TimeSpan.Zero);
     private static readonly TimeOnly OpensAt = new(8, 0);
     private static readonly TimeOnly ClosesAt = new(22, 0);
 
@@ -24,7 +24,7 @@ public class BookingPolicyTests
             closesAt: ClosesAt);
 
     private static Timeslot Slot(int startHour, int endHour) =>
-        new(new DateTime(2030, 1, 2, startHour, 0, 0), new DateTime(2030, 1, 2, endHour, 0, 0));
+        new(new DateTimeOffset(2030, 1, 2, startHour, 0, 0, TimeSpan.Zero), new DateTimeOffset(2030, 1, 2, endHour, 0, 0, TimeSpan.Zero));
 
     [Fact]
     public void GivenValidValues_WhenCreatingPolicy_ShouldSetProperties()
@@ -89,7 +89,7 @@ public class BookingPolicyTests
     public void GivenTimeslotShorterThanMinDuration_WhenCheckingPolicy_ShouldDeny()
     {
         var policy = CreatePolicy();
-        var timeslot = new Timeslot(new DateTime(2030, 1, 2, 10, 0, 0), new DateTime(2030, 1, 2, 10, 30, 0));
+        var timeslot = new Timeslot(new DateTimeOffset(2030, 1, 2, 10, 0, 0, TimeSpan.Zero), new DateTimeOffset(2030, 1, 2, 10, 30, 0, TimeSpan.Zero));
 
         policy.Allows(PrivateBooker, timeslot, Now).ShouldBeFalse();
     }
@@ -128,10 +128,22 @@ public class BookingPolicyTests
     }
 
     [Fact]
+    public void GivenTimeslotWithOffset_WhenCheckingOpeningHours_ShouldUseLocalTimeOfTimeslot()
+    {
+        var policy = CreatePolicy();
+        var offset = TimeSpan.FromHours(-2);
+        var timeslot = new Timeslot(
+            new DateTimeOffset(2030, 1, 2, 20, 0, 0, offset),
+            new DateTimeOffset(2030, 1, 2, 22, 0, 0, offset));
+
+        policy.Allows(PrivateBooker, timeslot, Now).ShouldBeTrue();
+    }
+
+    [Fact]
     public void GivenTimeslotInThePast_WhenCheckingPolicy_ShouldDeny()
     {
         var policy = CreatePolicy();
-        var now = new DateTime(2030, 1, 3, 8, 0, 0);
+        var now = new DateTimeOffset(2030, 1, 3, 8, 0, 0, TimeSpan.Zero);
 
         policy.Allows(PrivateBooker, Slot(10, 12), now).ShouldBeFalse();
     }

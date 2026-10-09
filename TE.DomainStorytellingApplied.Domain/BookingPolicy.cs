@@ -49,7 +49,7 @@ public sealed class BookingPolicy
 
     public TimeOnly ClosesAt { get; }
 
-    public bool Allows(Booker booker, Timeslot timeslot, DateTime now)
+    public bool Allows(Booker booker, Timeslot timeslot, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(booker);
         ArgumentNullException.ThrowIfNull(timeslot);
@@ -63,6 +63,6 @@ public sealed class BookingPolicy
 
     private bool IsWithinOpeningHours(Timeslot timeslot) =>
         timeslot.Start.Date == timeslot.End.Date
-        && TimeOnly.FromDateTime(timeslot.Start) >= OpensAt
-        && TimeOnly.FromDateTime(timeslot.End) <= ClosesAt;
+        && TimeOnly.FromDateTime(timeslot.Start.DateTime) >= OpensAt
+        && TimeOnly.FromDateTime(timeslot.End.DateTime) <= ClosesAt;
 }

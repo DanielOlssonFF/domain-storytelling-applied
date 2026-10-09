@@ -15,7 +15,7 @@ public sealed class PremisesSchedule
 
     public IReadOnlyCollection<Reservation> Reservations => _reservations.AsReadOnly();
 
-    public Reservation Reserve(Booker booker, Timeslot timeslot, DateTime now)
+    public Reservation Reserve(Booker booker, Timeslot timeslot, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(booker);
         ArgumentNullException.ThrowIfNull(timeslot);

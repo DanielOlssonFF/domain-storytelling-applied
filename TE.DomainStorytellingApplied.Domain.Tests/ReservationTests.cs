@@ -8,7 +8,7 @@ public class ReservationTests
     private static readonly Approver Approver = new("Bertil Berg");
 
     private static readonly Timeslot Timeslot =
-        new(new DateTime(2030, 1, 2, 10, 0, 0), new DateTime(2030, 1, 2, 12, 0, 0));
+        new(new DateTimeOffset(2030, 1, 2, 10, 0, 0, TimeSpan.Zero), new DateTimeOffset(2030, 1, 2, 12, 0, 0, TimeSpan.Zero));
 
     private static Premises CreatePremises(bool requiresReview) =>
         new("Stora salen", new BookingPolicy(
