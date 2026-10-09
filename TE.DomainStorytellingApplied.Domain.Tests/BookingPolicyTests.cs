@@ -84,6 +84,13 @@ public class BookingPolicyTests
     }
 
     [Fact]
+    public void GivenUndefinedBookerType_WhenCreatingPolicy_ShouldThrow()
+    {
+        Should.Throw<ArgumentException>(() =>
+            CreatePolicy(allowedBookerTypes: [BookerType.PrivateIndividual, (BookerType)999]));
+    }
+
+    [Fact]
     public void GivenAllowedBookerAndValidTimeslot_WhenCheckingPolicy_ShouldAllow()
     {
         var policy = CreatePolicy();

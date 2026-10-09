@@ -19,6 +19,11 @@ public sealed class BookingPolicy
             throw new ArgumentException("At least one booker type must be allowed.", nameof(allowedBookerTypes));
         }
 
+        if (bookerTypes.Any(type => !Enum.IsDefined(type)))
+        {
+            throw new ArgumentException("All booker types must be valid.", nameof(allowedBookerTypes));
+        }
+
         if (minDuration <= TimeSpan.Zero)
         {
             throw new ArgumentException("Min duration must be greater than zero.", nameof(minDuration));

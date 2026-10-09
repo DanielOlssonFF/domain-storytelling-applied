@@ -97,6 +97,7 @@ Värdeobjekt.
 - `MinDuration` får inte vara större än `MaxDuration`.
 - Öppningstiden måste vara tidigare än stängningstiden.
 - Minst en bokartyp måste vara tillåten.
+- Alla tillåtna bokartyper måste vara giltiga värden.
 - En bokare vars typ inte är tillåten nekas.
 - En tidslucka som är kortare än `MinDuration` nekas.
 - En tidslucka som är längre än `MaxDuration` nekas.
