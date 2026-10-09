@@ -38,12 +38,10 @@ Här beskrivs de modeller som behövs i domänen: vad de innehåller, vilka regl
 |---|---|---|
 | `Id` | `Guid` | Unik identitet |
 | `Name` | `string` | Lokalens namn |
-| `Capacity` | `int` | Maximalt antal personer |
 | `BookingPolicy` | `BookingPolicy` | Policyn som gäller för lokalen |
 
 **Regler och testfall**
 - Namn får inte vara tomt.
-- Kapaciteten måste vara större än 0.
 - En lokal måste ha en bokningspolicy.
 
 ---

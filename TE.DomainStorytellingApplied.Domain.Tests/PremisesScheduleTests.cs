@@ -13,7 +13,7 @@ public class PremisesScheduleTests
     private static readonly Approver Approver = new("Bertil Berg");
 
     private static PremisesSchedule CreateSchedule(bool requiresReview = false) =>
-        new(new Premises("Stora salen", 50, new BookingPolicy(
+        new(new Premises("Stora salen", new BookingPolicy(
             [BookerType.PrivateIndividual],
             requiresReview,
             minDuration: TimeSpan.FromHours(1),

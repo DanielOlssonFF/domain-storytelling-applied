@@ -13,11 +13,10 @@ public class PremisesTests
     [Fact]
     public void GivenValidValues_WhenCreatingPremises_ShouldSetProperties()
     {
-        var premises = new Premises("Stora salen", 50, Policy);
+        var premises = new Premises("Stora salen", Policy);
 
         premises.Id.ShouldNotBe(Guid.Empty);
         premises.Name.ShouldBe("Stora salen");
-        premises.Capacity.ShouldBe(50);
         premises.BookingPolicy.ShouldBe(Policy);
     }
 
@@ -26,20 +25,12 @@ public class PremisesTests
     [InlineData(" ")]
     public void GivenEmptyName_WhenCreatingPremises_ShouldThrow(string name)
     {
-        Should.Throw<ArgumentException>(() => new Premises(name, 50, Policy));
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void GivenCapacityNotGreaterThanZero_WhenCreatingPremises_ShouldThrow(int capacity)
-    {
-        Should.Throw<ArgumentException>(() => new Premises("Stora salen", capacity, Policy));
+        Should.Throw<ArgumentException>(() => new Premises(name, Policy));
     }
 
     [Fact]
     public void GivenNoBookingPolicy_WhenCreatingPremises_ShouldThrow()
     {
-        Should.Throw<ArgumentNullException>(() => new Premises("Stora salen", 50, null!));
+        Should.Throw<ArgumentNullException>(() => new Premises("Stora salen", null!));
     }
 }

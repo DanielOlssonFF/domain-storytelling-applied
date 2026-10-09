@@ -27,7 +27,7 @@ Innan en bokning kan göras måste de ingående modellerna vara giltiga.
 **Exempel på testfall**
 - En tidslucka kan inte skapas med en starttid som är senare än sluttiden.
 - En tidslucka kan inte skapas med en starttid som är lika med sluttiden.
-- En lokal kan inte skapas utan namn eller med en kapacitet på 0 eller lägre.
+- En lokal kan inte skapas utan namn eller utan bokningspolicy.
 - En bokare kan inte skapas utan namn eller med en ogiltig e-postadress.
 - En bokningspolicy kan inte ha en `MinDuration` som är större än `MaxDuration`.
 - En bokningspolicy måste tillåta minst en bokartyp.

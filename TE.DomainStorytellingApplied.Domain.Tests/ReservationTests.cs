@@ -11,7 +11,7 @@ public class ReservationTests
         new(new DateTime(2030, 1, 2, 10, 0, 0), new DateTime(2030, 1, 2, 12, 0, 0));
 
     private static Premises CreatePremises(bool requiresReview) =>
-        new("Stora salen", 50, new BookingPolicy(
+        new("Stora salen", new BookingPolicy(
             [BookerType.PrivateIndividual],
             requiresReview,
             minDuration: TimeSpan.FromHours(1),
