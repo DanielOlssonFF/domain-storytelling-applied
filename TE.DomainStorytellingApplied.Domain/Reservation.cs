@@ -2,7 +2,7 @@ namespace TE.DomainStorytellingApplied.Domain;
 
 public sealed class Reservation
 {
-    public Reservation(Booker booker, Premises premises, Timeslot timeslot)
+    internal Reservation(Booker booker, Premises premises, Timeslot timeslot)
     {
         ArgumentNullException.ThrowIfNull(booker);
         ArgumentNullException.ThrowIfNull(premises);
@@ -29,7 +29,7 @@ public sealed class Reservation
 
     public string? RejectionReason { get; private set; }
 
-    public void Submit()
+    internal void Submit()
     {
         EnsureStatus(ReservationStatus.Created);
 
