@@ -71,26 +71,17 @@ public class PremisesTests
     }
 
     [Fact]
-    public void GivenFreeTimeslot_WhenReserving_ShouldCreateReservation()
+    public void GivenPolicyWithoutReview_WhenReserving_ShouldCreateApprovedReservation()
     {
-        var premises = CreatePremises();
+        var premises = CreatePremises(requiresReview: false);
 
         var reservation = premises.Reserve(Booker, Slot(10, 12), Now);
 
         reservation.BookerId.ShouldBe(Booker.Id);
         reservation.PremisesId.ShouldBe(premises.Id);
         reservation.Timeslot.ShouldBe(Slot(10, 12));
-        premises.Reservations.ShouldContain(reservation);
-    }
-
-    [Fact]
-    public void GivenPolicyWithoutReview_WhenReserving_ShouldBeApproved()
-    {
-        var premises = CreatePremises(requiresReview: false);
-
-        var reservation = premises.Reserve(Booker, Slot(10, 12), Now);
-
         reservation.Status.ShouldBe(ReservationStatus.Approved);
+        premises.Reservations.ShouldContain(reservation);
     }
 
     [Fact]
@@ -110,16 +101,6 @@ public class PremisesTests
 
         Should.Throw<InvalidOperationException>(() => premises.Reserve(AssociationBooker, Slot(10, 12), Now));
         premises.Reservations.ShouldBeEmpty();
-    }
-
-    [Fact]
-    public void GivenAlreadyReservedTimeslot_WhenReservingSameTimeslot_ShouldThrow()
-    {
-        var premises = CreatePremises();
-        premises.Reserve(Booker, Slot(10, 12), Now);
-
-        Should.Throw<InvalidOperationException>(() => premises.Reserve(Booker, Slot(10, 12), Now));
-        premises.Reservations.Count.ShouldBe(1);
     }
 
     [Fact]

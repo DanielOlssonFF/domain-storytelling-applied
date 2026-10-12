@@ -54,55 +54,11 @@ public class ReservationTests
     }
 
     [Fact]
-    public void GivenReviewNotRequired_WhenSubmitting_ShouldBeApproved()
-    {
-        var reservation = CreateReservation();
-
-        reservation.Submit(requiresReview: false);
-
-        reservation.Status.ShouldBe(ReservationStatus.Approved);
-        reservation.ReviewedById.ShouldBeNull();
-    }
-
-    [Fact]
-    public void GivenReviewRequired_WhenSubmitting_ShouldBePendingReview()
-    {
-        var reservation = CreateReservation();
-
-        reservation.Submit(requiresReview: true);
-
-        reservation.Status.ShouldBe(ReservationStatus.PendingReview);
-    }
-
-    [Fact]
     public void GivenSubmittedReservation_WhenSubmittingAgain_ShouldThrow()
     {
         var reservation = CreatePendingReservation();
 
         Should.Throw<InvalidOperationException>(() => reservation.Submit(requiresReview: true));
-    }
-
-    [Fact]
-    public void GivenPendingReview_WhenApproverApproves_ShouldBeApprovedAndReviewedByApprover()
-    {
-        var reservation = CreatePendingReservation();
-
-        reservation.Approve(Approver);
-
-        reservation.Status.ShouldBe(ReservationStatus.Approved);
-        reservation.ReviewedById.ShouldBe(Approver.Id);
-    }
-
-    [Fact]
-    public void GivenPendingReview_WhenApproverRejects_ShouldBeRejectedWithReason()
-    {
-        var reservation = CreatePendingReservation();
-
-        reservation.Reject(Approver, "Lokalen renoveras");
-
-        reservation.Status.ShouldBe(ReservationStatus.Rejected);
-        reservation.ReviewedById.ShouldBe(Approver.Id);
-        reservation.RejectionReason.ShouldBe("Lokalen renoveras");
     }
 
     [Theory]

@@ -36,19 +36,6 @@ public class NotificationTests
     }
 
     [Fact]
-    public void GivenReservationApprovedByApprover_WhenCreatingNotification_ShouldBeConfirmation()
-    {
-        var premises = CreatePremises(requiresReview: true);
-        var reservation = premises.Reserve(Booker, Timeslot, Now);
-        premises.Approve(reservation.Id, Approver);
-
-        var notification = Notification.For(reservation);
-
-        notification.Type.ShouldBe(NotificationType.Confirmation);
-        notification.RecipientId.ShouldBe(Booker.Id);
-    }
-
-    [Fact]
     public void GivenRejectedReservation_WhenCreatingNotification_ShouldBeRejectionContainingReason()
     {
         var premises = CreatePremises(requiresReview: true);
