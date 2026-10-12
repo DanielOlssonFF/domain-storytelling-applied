@@ -40,6 +40,24 @@ public class BookingPolicyTests
     }
 
     [Fact]
+    public void GivenPoliciesWithSameValues_WhenComparing_ShouldBeEqual()
+    {
+        var first = CreatePolicy(allowedBookerTypes: [BookerType.PrivateIndividual, BookerType.MunicipalityEmployee]);
+        var second = CreatePolicy(allowedBookerTypes: [BookerType.MunicipalityEmployee, BookerType.PrivateIndividual]);
+
+        first.ShouldBe(second);
+        first.GetHashCode().ShouldBe(second.GetHashCode());
+    }
+
+    [Fact]
+    public void GivenPoliciesWithDifferentValues_WhenComparing_ShouldNotBeEqual()
+    {
+        CreatePolicy(requiresReview: true).ShouldNotBe(CreatePolicy(requiresReview: false));
+        CreatePolicy(allowedBookerTypes: [BookerType.PrivateIndividual])
+            .ShouldNotBe(CreatePolicy(allowedBookerTypes: [BookerType.MunicipalityEmployee]));
+    }
+
+    [Fact]
     public void GivenMinDurationGreaterThanMaxDuration_WhenCreatingPolicy_ShouldThrow()
     {
         Should.Throw<ArgumentException>(() => new BookingPolicy(

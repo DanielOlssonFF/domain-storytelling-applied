@@ -1,6 +1,6 @@
 namespace TE.DomainStorytellingApplied.Domain;
 
-public sealed class BookingPolicy
+public sealed record BookingPolicy
 {
     public BookingPolicy(
         IEnumerable<BookerType> allowedBookerTypes,
@@ -12,7 +12,7 @@ public sealed class BookingPolicy
     {
         ArgumentNullException.ThrowIfNull(allowedBookerTypes);
 
-        var bookerTypes = allowedBookerTypes.Distinct().ToArray();
+        var bookerTypes = allowedBookerTypes.Distinct().Order().ToArray();
 
         if (bookerTypes.Length == 0)
         {
@@ -69,6 +69,33 @@ public sealed class BookingPolicy
             && timeslot.Duration >= MinDuration
             && timeslot.Duration <= MaxDuration
             && IsWithinOpeningHours(timeslot);
+    }
+
+    public bool Equals(BookingPolicy? other) =>
+        other is not null
+        && AllowedBookerTypes.SequenceEqual(other.AllowedBookerTypes)
+        && RequiresReview == other.RequiresReview
+        && MinDuration == other.MinDuration
+        && MaxDuration == other.MaxDuration
+        && OpensAt == other.OpensAt
+        && ClosesAt == other.ClosesAt;
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+
+        foreach (var bookerType in AllowedBookerTypes)
+        {
+            hash.Add(bookerType);
+        }
+
+        hash.Add(RequiresReview);
+        hash.Add(MinDuration);
+        hash.Add(MaxDuration);
+        hash.Add(OpensAt);
+        hash.Add(ClosesAt);
+
+        return hash.ToHashCode();
     }
 
     private bool IsWithinOpeningHours(Timeslot timeslot) =>
