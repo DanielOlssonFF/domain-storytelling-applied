@@ -38,7 +38,7 @@ public sealed class Reservation
             : ReservationStatus.Approved;
     }
 
-    public void Approve(Approver approver)
+    internal void Approve(Approver approver)
     {
         ArgumentNullException.ThrowIfNull(approver);
         EnsureStatus(ReservationStatus.PendingReview);
@@ -47,7 +47,7 @@ public sealed class Reservation
         ReviewedBy = approver;
     }
 
-    public void Reject(Approver approver, string reason)
+    internal void Reject(Approver approver, string reason)
     {
         ArgumentNullException.ThrowIfNull(approver);
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
