@@ -4,6 +4,20 @@ Här beskrivs de modeller som behövs i domänen: vad de innehåller, vilka meto
 
 Ogiltiga värden ger `ArgumentException` eller `ArgumentNullException`. Otillåtna åtgärder, till exempel fel status, nekad policy eller överlapp, ger `InvalidOperationException`.
 
+## Roller i domänen
+
+| Modell | Roll |
+|---|---|
+| `Booker` | Entitet, eget aggregat |
+| `Approver` | Entitet, eget aggregat |
+| `Premises` | Aggregatrot som äger sina bokningar |
+| `Reservation` | Entitet inuti `Premises`-aggregatet |
+| `Timeslot` | Värdeobjekt |
+| `BookingPolicy` | Värdeobjekt |
+| `Notification` | Besked som härleds från en bokning |
+
+Aggregat refererar till varandra med id, inte med objektreferenser.
+
 ---
 
 ## Booker (Bokare)
@@ -36,15 +50,31 @@ Ogiltiga värden ger `ArgumentException` eller `ArgumentNullException`. Otillåt
 
 ## Premises (Lokal)
 
+Aggregatrot. Är den enda vägen att skapa, godkänna och avslå bokningar, så att policyn och överlapp alltid kontrolleras.
+
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
 | `Id` | `Guid` | Unik identitet |
 | `Name` | `string` | Lokalens namn |
 | `BookingPolicy` | `BookingPolicy` | Policyn som gäller för lokalen |
+| `Reservations` | `IReadOnlyCollection<Reservation>` | Lokalens bokningar |
+
+**Metoder**
+
+| Metod | Beskrivning |
+|---|---|
+| `Reserve(Booker booker, Timeslot timeslot, DateTimeOffset now)` | Skapar en bokning om policyn tillåter och tidsluckan är ledig |
+| `Approve(Guid reservationId, Approver approver)` | Godkänner en bokning som väntar på granskning |
+| `Reject(Guid reservationId, Approver approver, string reason)` | Avslår en bokning som väntar på granskning |
 
 **Regler och testfall**
 - Namn får inte vara tomt.
 - En lokal måste ha en bokningspolicy.
+- En bokning som policyn nekar skapas inte.
+- En tidslucka som överlappar en befintlig, ej avslagen bokning kan inte bokas.
+- En tidslucka som överlappar en avslagen bokning kan bokas.
+- Två tidsluckor som ligger direkt efter varandra kan bokas.
+- Godkännande eller avslag av en okänd bokning ger `ArgumentException`.
 
 ---
 
@@ -77,6 +107,8 @@ Värdeobjekt.
 
 ## BookingPolicy (Bokningspolicy)
 
+Värdeobjekt. Två policyer med samma värden är lika, oavsett ordning på de tillåtna bokartyperna.
+
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
 | `AllowedBookerTypes` | `IReadOnlyCollection<BookerType>` | Vilka bokartyper som får boka |
@@ -90,11 +122,11 @@ Värdeobjekt.
 
 | Metod | Beskrivning |
 |---|---|
-| `Allows(Booker booker, Timeslot timeslot, DateTimeOffset now)` |
+| `Allows(Booker booker, Timeslot timeslot, DateTimeOffset now)` | Returnerar `true` om bokaren får boka tidsluckan |
 
 **Regler och testfall**
 - `MinDuration` måste vara större än 0.
-- `MinDuration` får inte vara större än `MaxDuration`.
+- `MinDuration` får inte
 - Öppningstiden måste vara tidigare än stängningstiden.
 - Minst en bokartyp måste vara tillåten.
 - Alla tillåtna bokartyper måste vara giltiga värden.
@@ -109,25 +141,25 @@ Värdeobjekt.
 
 ## Reservation (Bokning)
 
-Skapas endast via `PremisesSchedule.Reserve`. Konstruktorn och `Submit` är `internal`, så att policyn och överlappet alltid kontrolleras innan en bokning finns.
+Entitet inuti `Premises`-aggregatet. Skapas endast via `Premises.Reserve`. Konstruktorn och alla metoder är `internal`.
 
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
 | `Id` | `Guid` | Unik identitet |
-| `Booker` | `Booker` | Den som bokar |
-| `Premises` | `Premises` | Lokalen som bokas |
+| `BookerId` | `Guid` | Id för den som bokar |
+| `PremisesId` | `Guid` | Id för lokalen som bokas |
 | `Timeslot` | `Timeslot` | Tidsluckan som bokas |
 | `Status` | `ReservationStatus` | `Created`, `PendingReview`, `Approved` eller `Rejected` |
-| `ReviewedBy` | `Approver?` | Godkännaren, om bokningen har granskats |
+| `ReviewedById` | `Guid?` | Id för godkännaren, om bokningen har granskats |
 | `RejectionReason` | `string?` | Anledning till avslag |
 
 **Metoder**
 
 | Metod | Synlighet | Beskrivning |
 |---|---|---|
-| `Submit()` | `internal` | Flyttar bokningen från `Created` till `Approved` eller `PendingReview` beroende på policyn |
-| `Approve(Approver approver)` | `public` | Godkänner en bokning som väntar på granskning |
-| `Reject(Approver approver, string reason)` | `public` | Avslår en bokning som väntar på granskning |
+| `Submit(bool requiresReview)` | `internal` | Flyttar bokningen från `Created` till `Approved` eller `PendingReview` |
+| `Approve(Approver approver)` | `internal` | Godkänner en bokning som väntar på granskning |
+| `Reject(Approver approver, string reason)` | `internal` | Avslår en bokning som väntar på granskning |
 
 **Statusflöde**
 
@@ -138,36 +170,13 @@ Created ──(policyn kräver granskning)──► PendingReview ──► Appr
 
 **Regler och testfall**
 - En ny bokning har statusen `Created`.
-- Bokare, lokal och tidslucka är obligatoriska.
+- Bokar-id och lokal-id får inte vara tomma, och tidsluckan är obligatorisk.
 - Bokningen går till `Approved` om policyn inte kräver granskning.
 - Bokningen går till `PendingReview` om policyn kräver granskning.
 - Endast en bokning med statusen `PendingReview` kan godkännas eller avslås av en godkännare.
 - Ett avslag kräver en anledning.
 - En bokning som har statusen `Approved` eller `Rejected` kan inte ändras.
-- `ReviewedBy` sätts när en godkännare godkänner eller avslår bokningen.
-
----
-
-## PremisesSchedule (Lokalens bokningskalender)
-
-Håller koll på de bokningar som finns för en lokal och är den enda vägen att skapa en bokning.
-
-| Egenskap | Typ | Beskrivning |
-|---|---|---|
-| `Premises` | `Premises` | Lokalen |
-| `Reservations` | `IReadOnlyCollection<Reservation>` | Lokalens bokningar |
-
-**Metoder**
-
-| Metod | Beskrivning |
-|---|---|
-| `Reserve(Booker booker, Timeslot timeslot, DateTimeOffset now)` |
-
-**Regler och testfall**
-- En bokning som policyn nekar skapas inte.
-- En tidslucka som överlappar en befintlig, ej avslagen bokning kan inte bokas.
-- En tidslucka som överlappar en avslagen bokning kan bokas.
-- Två tidsluckor som ligger direkt efter varandra kan bokas.
+- `ReviewedById` sätts när en godkännare godkänner eller avslår bokningen.
 
 ---
 
@@ -175,7 +184,7 @@ Håller koll på de bokningar som finns för en lokal och är den enda vägen at
 
 | Egenskap | Typ | Beskrivning |
 |---|---|---|
-| `Recipient` | `Booker` | Mottagaren |
+| `RecipientId` | `Guid` | Id för mottagaren (bokaren) |
 | `ReservationId` | `Guid` | Bokningen som beskedet gäller |
 | `Type` | `NotificationType` | `Confirmation` eller `Rejection` |
 | `Message` | `string` | Meddelandetext, inklusive anledningen vid avslag |
