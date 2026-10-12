@@ -2,38 +2,46 @@ namespace TE.DomainStorytellingApplied.Domain;
 
 public sealed class Reservation
 {
-    internal Reservation(Booker booker, Premises premises, Timeslot timeslot)
+    internal Reservation(Guid bookerId, Guid premisesId, Timeslot timeslot)
     {
-        ArgumentNullException.ThrowIfNull(booker);
-        ArgumentNullException.ThrowIfNull(premises);
+        if (bookerId == Guid.Empty)
+        {
+            throw new ArgumentException("Booker id must not be empty.", nameof(bookerId));
+        }
+
+        if (premisesId == Guid.Empty)
+        {
+            throw new ArgumentException("Premises id must not be empty.", nameof(premisesId));
+        }
+
         ArgumentNullException.ThrowIfNull(timeslot);
 
         Id = Guid.NewGuid();
-        Booker = booker;
-        Premises = premises;
+        BookerId = bookerId;
+        PremisesId = premisesId;
         Timeslot = timeslot;
         Status = ReservationStatus.Created;
     }
 
     public Guid Id { get; }
 
-    public Booker Booker { get; }
+    public Guid BookerId { get; }
 
-    public Premises Premises { get; }
+    public Guid PremisesId { get; }
 
     public Timeslot Timeslot { get; }
 
     public ReservationStatus Status { get; private set; }
 
-    public Approver? ReviewedBy { get; private set; }
+    public Guid? ReviewedById { get; private set; }
 
     public string? RejectionReason { get; private set; }
 
-    internal void Submit()
+    internal void Submit(bool requiresReview)
     {
         EnsureStatus(ReservationStatus.Created);
 
-        Status = Premises.BookingPolicy.RequiresReview
+        Status = requiresReview
             ? ReservationStatus.PendingReview
             : ReservationStatus.Approved;
     }
@@ -44,7 +52,7 @@ public sealed class Reservation
         EnsureStatus(ReservationStatus.PendingReview);
 
         Status = ReservationStatus.Approved;
-        ReviewedBy = approver;
+        ReviewedById = approver.Id;
     }
 
     internal void Reject(Approver approver, string reason)
@@ -54,7 +62,7 @@ public sealed class Reservation
         EnsureStatus(ReservationStatus.PendingReview);
 
         Status = ReservationStatus.Rejected;
-        ReviewedBy = approver;
+        ReviewedById = approver.Id;
         RejectionReason = reason;
     }
 

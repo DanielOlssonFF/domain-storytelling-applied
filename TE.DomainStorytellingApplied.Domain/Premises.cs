@@ -37,8 +37,8 @@ public sealed class Premises
             throw new InvalidOperationException("The timeslot overlaps an existing reservation.");
         }
 
-        var reservation = new Reservation(booker, this, timeslot);
-        reservation.Submit();
+        var reservation = new Reservation(booker.Id, Id, timeslot);
+        reservation.Submit(BookingPolicy.RequiresReview);
         _reservations.Add(reservation);
 
         return reservation;

@@ -77,8 +77,8 @@ public class PremisesTests
 
         var reservation = premises.Reserve(Booker, Slot(10, 12), Now);
 
-        reservation.Booker.ShouldBe(Booker);
-        reservation.Premises.ShouldBe(premises);
+        reservation.BookerId.ShouldBe(Booker.Id);
+        reservation.PremisesId.ShouldBe(premises.Id);
         reservation.Timeslot.ShouldBe(Slot(10, 12));
         premises.Reservations.ShouldContain(reservation);
     }
@@ -173,7 +173,7 @@ public class PremisesTests
         premises.Approve(reservation.Id, Approver);
 
         reservation.Status.ShouldBe(ReservationStatus.Approved);
-        reservation.ReviewedBy.ShouldBe(Approver);
+        reservation.ReviewedById.ShouldBe(Approver.Id);
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class PremisesTests
         premises.Reject(reservation.Id, Approver, "Lokalen renoveras");
 
         reservation.Status.ShouldBe(ReservationStatus.Rejected);
-        reservation.ReviewedBy.ShouldBe(Approver);
+        reservation.ReviewedById.ShouldBe(Approver.Id);
         reservation.RejectionReason.ShouldBe("Lokalen renoveras");
     }
 

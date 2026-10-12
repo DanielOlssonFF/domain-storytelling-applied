@@ -2,81 +2,74 @@ namespace TE.DomainStorytellingApplied.Domain.Tests;
 
 public class ReservationTests
 {
-    private static readonly Booker Booker =
-        new("Anna Andersson", "anna@example.com", BookerType.PrivateIndividual);
+    private static readonly Guid BookerId = Guid.NewGuid();
+
+    private static readonly Guid PremisesId = Guid.NewGuid();
 
     private static readonly Approver Approver = new("Bertil Berg");
 
     private static readonly Timeslot Timeslot =
-        new(new DateTimeOffset(2030, 1, 2, 10, 0, 0, TimeSpan.Zero), new DateTimeOffset(2030, 1, 2, 12, 0, 0, TimeSpan.Zero));
+        new(new DateTimeOffset(2030, 1, 2, 10, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2030, 1, 2, 12, 0, 0, TimeSpan.Zero));
 
-    private static Premises CreatePremises(bool requiresReview) =>
-        new("Stora salen", new BookingPolicy(
-            [BookerType.PrivateIndividual],
-            requiresReview,
-            minDuration: TimeSpan.FromHours(1),
-            maxDuration: TimeSpan.FromHours(4),
-            opensAt: new TimeOnly(8, 0),
-            closesAt: new TimeOnly(22, 0)));
+    private static Reservation CreateReservation() => new(BookerId, PremisesId, Timeslot);
 
     private static Reservation CreatePendingReservation()
     {
-        var reservation = new Reservation(Booker, CreatePremises(requiresReview: true), Timeslot);
-        reservation.Submit();
+        var reservation = CreateReservation();
+        reservation.Submit(requiresReview: true);
         return reservation;
     }
 
     [Fact]
     public void GivenValidValues_WhenCreatingReservation_ShouldHaveStatusCreated()
     {
-        var premises = CreatePremises(requiresReview: false);
-
-        var reservation = new Reservation(Booker, premises, Timeslot);
+        var reservation = CreateReservation();
 
         reservation.Id.ShouldNotBe(Guid.Empty);
-        reservation.Booker.ShouldBe(Booker);
-        reservation.Premises.ShouldBe(premises);
+        reservation.BookerId.ShouldBe(BookerId);
+        reservation.PremisesId.ShouldBe(PremisesId);
         reservation.Timeslot.ShouldBe(Timeslot);
         reservation.Status.ShouldBe(ReservationStatus.Created);
-        reservation.ReviewedBy.ShouldBeNull();
+        reservation.ReviewedById.ShouldBeNull();
         reservation.RejectionReason.ShouldBeNull();
     }
 
     [Fact]
-    public void GivenNoBooker_WhenCreatingReservation_ShouldThrow()
+    public void GivenEmptyBookerId_WhenCreatingReservation_ShouldThrow()
     {
-        Should.Throw<ArgumentNullException>(() => new Reservation(null!, CreatePremises(false), Timeslot));
+        Should.Throw<ArgumentException>(() => new Reservation(Guid.Empty, PremisesId, Timeslot));
     }
 
     [Fact]
-    public void GivenNoPremises_WhenCreatingReservation_ShouldThrow()
+    public void GivenEmptyPremisesId_WhenCreatingReservation_ShouldThrow()
     {
-        Should.Throw<ArgumentNullException>(() => new Reservation(Booker, null!, Timeslot));
+        Should.Throw<ArgumentException>(() => new Reservation(BookerId, Guid.Empty, Timeslot));
     }
 
     [Fact]
     public void GivenNoTimeslot_WhenCreatingReservation_ShouldThrow()
     {
-        Should.Throw<ArgumentNullException>(() => new Reservation(Booker, CreatePremises(false), null!));
+        Should.Throw<ArgumentNullException>(() => new Reservation(BookerId, PremisesId, null!));
     }
 
     [Fact]
-    public void GivenPolicyWithoutReview_WhenSubmitting_ShouldBeApproved()
+    public void GivenReviewNotRequired_WhenSubmitting_ShouldBeApproved()
     {
-        var reservation = new Reservation(Booker, CreatePremises(requiresReview: false), Timeslot);
+        var reservation = CreateReservation();
 
-        reservation.Submit();
+        reservation.Submit(requiresReview: false);
 
         reservation.Status.ShouldBe(ReservationStatus.Approved);
-        reservation.ReviewedBy.ShouldBeNull();
+        reservation.ReviewedById.ShouldBeNull();
     }
 
     [Fact]
-    public void GivenPolicyWithReview_WhenSubmitting_ShouldBePendingReview()
+    public void GivenReviewRequired_WhenSubmitting_ShouldBePendingReview()
     {
-        var reservation = new Reservation(Booker, CreatePremises(requiresReview: true), Timeslot);
+        var reservation = CreateReservation();
 
-        reservation.Submit();
+        reservation.Submit(requiresReview: true);
 
         reservation.Status.ShouldBe(ReservationStatus.PendingReview);
     }
@@ -86,7 +79,7 @@ public class ReservationTests
     {
         var reservation = CreatePendingReservation();
 
-        Should.Throw<InvalidOperationException>(() => reservation.Submit());
+        Should.Throw<InvalidOperationException>(() => reservation.Submit(requiresReview: true));
     }
 
     [Fact]
@@ -97,7 +90,7 @@ public class ReservationTests
         reservation.Approve(Approver);
 
         reservation.Status.ShouldBe(ReservationStatus.Approved);
-        reservation.ReviewedBy.ShouldBe(Approver);
+        reservation.ReviewedById.ShouldBe(Approver.Id);
     }
 
     [Fact]
@@ -108,7 +101,7 @@ public class ReservationTests
         reservation.Reject(Approver, "Lokalen renoveras");
 
         reservation.Status.ShouldBe(ReservationStatus.Rejected);
-        reservation.ReviewedBy.ShouldBe(Approver);
+        reservation.ReviewedById.ShouldBe(Approver.Id);
         reservation.RejectionReason.ShouldBe("Lokalen renoveras");
     }
 
@@ -133,7 +126,7 @@ public class ReservationTests
     [Fact]
     public void GivenCreatedReservation_WhenApproving_ShouldThrow()
     {
-        var reservation = new Reservation(Booker, CreatePremises(requiresReview: true), Timeslot);
+        var reservation = CreateReservation();
 
         Should.Throw<InvalidOperationException>(() => reservation.Approve(Approver));
     }
